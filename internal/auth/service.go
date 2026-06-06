@@ -62,3 +62,17 @@ func Login(req LoginRequest) (string, error) {
     // return token
 	return token, nil
 }
+
+func GetProfile(userID uint) (user.User, error) {
+	var user user.User
+
+	err := database.DB.
+		First(&user, userID).
+		Error
+
+	if err != nil {
+		return user, err
+	}
+
+	return user, nil
+}

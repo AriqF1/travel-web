@@ -59,11 +59,24 @@ func LoginHandler(c *gin.Context) {
 
 func ProfileHandler(c *gin.Context) {
 
-	userID, _ := c.Get("user_id")
-	email, _ := c.Get("email")
+	userIDInterface, _ := c.Get("user_id")
+
+	userID := uint(userIDInterface.(float64))
+
+	user, err := GetProfile(userID)
+
+	if err != nil {
+		c.JSON(404, gin.H{
+			"error": err.Error(),
+		})
+		return
+	}
 
 	c.JSON(200, gin.H{
-		"user_id": userID,
-		"email": email,
+		"id": user.ID,
+		"name": user.Name,
+		"email": user.Email,
+		"role": user.Role,
 	})
 }
+
