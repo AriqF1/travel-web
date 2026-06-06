@@ -8,6 +8,8 @@ import (
 
 	"github.com/AriqF1/travel-web/internal/user"
 	"github.com/AriqF1/travel-web/internal/auth"
+	"github.com/AriqF1/travel-web/internal/vehicle"
+	"github.com/AriqF1/travel-web/internal/schedule"
 	"github.com/AriqF1/travel-web/pkg/database"
 	"github.com/AriqF1/travel-web/pkg/middleware"
 )
@@ -27,7 +29,13 @@ func main() {
 
 	database.DB.AutoMigrate(
 		&user.User{},
+		&vehicle.Vehicle{},
+		&schedule.Schedule{},
 	)
+	
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	r := gin.Default()
 
@@ -39,10 +47,16 @@ func main() {
 		authGroup.POST("/login", auth.LoginHandler)
 	}
 
-	protected := api.Group("/profile")
+	protected := api.Group("/")
 	protected.Use(middleware.AuthMiddleware())
 	{
-		protected.GET("/", auth.ProfileHandler)
+		protected.GET("/profile", auth.ProfileHandler)
+
+		protected.POST("/vehicles", vehicle.CreateVehicleHandler)
+		protected.GET("/vehicles", vehicle.GetVehicleHandler)
+		protected.GET("/vehicles/:id", vehicle.GetVehicleByIDHandler)
+		protected.PUT("/vehicles/:id", vehicle.UpdateVehicleHandler)
+		protected.DELETE("/vehicles/:id", vehicle.DeleteVehicleHandler)
 	}
 
 	r.GET("/", func(c *gin.Context) {
