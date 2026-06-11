@@ -10,6 +10,8 @@ import (
 	"github.com/AriqF1/travel-web/internal/auth"
 	"github.com/AriqF1/travel-web/internal/vehicle"
 	"github.com/AriqF1/travel-web/internal/schedule"
+	"github.com/AriqF1/travel-web/internal/booking"
+
 	"github.com/AriqF1/travel-web/pkg/database"
 	"github.com/AriqF1/travel-web/pkg/middleware"
 )
@@ -31,6 +33,7 @@ func main() {
 		&user.User{},
 		&vehicle.Vehicle{},
 		&schedule.Schedule{},
+		&booking.Booking{},
 	)
 	
 	if err != nil {
@@ -63,6 +66,8 @@ func main() {
 		protected.GET("/schedules/:id", schedule.GetScheduleByIDHandler)
 		protected.PUT("/schedules/:id", schedule.UpdateScheduleHandler)
 		protected.DELETE("/schedules/:id", schedule.DeleteScheduleHandler)
+
+		protected.POST("/bookings", booking.CreateBookingHandler)
 	}
 
 	r.GET("/", func(c *gin.Context) {
