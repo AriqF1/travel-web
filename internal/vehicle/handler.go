@@ -42,8 +42,12 @@ func GetVehicleHandler(c *gin.Context) {
 		return
 	}
 
+	responses := ToVehicleResponses(
+		vehicles,
+	)
+
 	c.JSON(http.StatusOK, gin.H{
-		"vehicles": vehicles,
+		"vehicles": responses,
 	})
 }
 
@@ -114,6 +118,8 @@ func DeleteVehicleHandler(c *gin.Context) {
 }
 
 func UpdateVehicleHandler(c *gin.Context) {
+	var req UpdateVehicleRequest
+
 	idParam := c.Param("id")
 	id, err := strconv.ParseUint(idParam, 10, 32)
 	if err != nil {
@@ -122,8 +128,6 @@ func UpdateVehicleHandler(c *gin.Context) {
 		})
 		return
 	}
-
-	var req UpdateVehicleRequest
 
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
