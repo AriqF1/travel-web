@@ -57,6 +57,12 @@ func main() {
 		protected.GET("/vehicles/:id", vehicle.GetVehicleByIDHandler)
 		protected.PUT("/vehicles/:id", vehicle.UpdateVehicleHandler)
 		protected.DELETE("/vehicles/:id", vehicle.DeleteVehicleHandler)
+
+		protected.GET("/schedules", schedule.GetScheduleHandler)
+		protected.POST("/schedules", schedule.CreateScheduleHandler)
+		protected.GET("/schedules/:id", schedule.GetScheduleByIDHandler)
+		protected.PUT("/schedules/:id", schedule.UpdateScheduleHandler)
+		protected.DELETE("/schedules/:id", schedule.DeleteScheduleHandler)
 	}
 
 	r.GET("/", func(c *gin.Context) {
