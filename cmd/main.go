@@ -68,6 +68,8 @@ func main() {
 		protected.DELETE("/schedules/:id", schedule.DeleteScheduleHandler)
 
 		protected.POST("/bookings", booking.CreateBookingHandler)
+		protected.GET("/bookings", booking.GetBookingsHandler)
+		protected.GET("/bookings/:id", booking.GetBookingsByIdHandler)
 	}
 
 	r.GET("/", func(c *gin.Context) {
