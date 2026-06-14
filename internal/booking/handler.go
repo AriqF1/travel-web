@@ -1,8 +1,12 @@
 package booking
 
 import (
+    "errors"
 	"net/http"
 	"github.com/gin-gonic/gin"
+
+    "gorm.io/gorm"
+    "strconv"
 )
 
 func CreateBookingHandler(c *gin.Context) {
@@ -35,4 +39,60 @@ func CreateBookingHandler(c *gin.Context) {
     })
 }
 
+func GetBookingsHandler(c *gin.Context) {
+    bookings, err := GetBookings()
+
+    if err != nil {
+      if errors.Is(err, gorm.ErrRecordNotFound) {
+        c.JSON(http.StatusNotFound, gin.H{"error": "Bookings not found"})
+        return
+      }
+
+      c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+      return
+    }
+
+    responses := ToBookingResponses(
+        bookings,
+    )
+
+    c.JSON(http.StatusOK, gin.H{
+        "bookings": responses,
+    })
+}
+
+func GetBookingsByIdHandler(c *gin.Context){
+    idParam := c.Param("id")
+
+    id, err := strconv.ParseUint(idParam, 10, 32)
+
+    if err != nil {
+        c.JSON(http.StatusBadRequest, gin.H{
+            "error": "Invalid Schedule ID",
+        })
+        return
+    }
+
+    booking, err := GetBookingByID(uint(id))
+
+    if err != nil {
+
+        if errors.Is(err, gorm.ErrRecordNotFound){
+            c.JSON(http.StatusNotFound, gin.H{
+                "error": "Booking not found",
+            })
+            return
+        }
+            c.JSON(http.StatusInternalServerError, gin.H{
+                "error": err.Error(),
+            })
+        return
+    }   
+
+
+    response := ToBookingResponse(booking)
+    c.JSON(http.StatusOK, gin.H{
+        "booking" : response,
+    })
+}
 	

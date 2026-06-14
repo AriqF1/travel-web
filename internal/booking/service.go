@@ -49,3 +49,27 @@ func CreateBooking(userID uint, req BookingRequest) error {
 
 	return database.DB.Create(&newBooking).Error
 }
+
+func GetBookings()([]Booking, error) {
+	var bookings []Booking
+
+	err := database.DB.Preload("Schedule.Vehicle").Preload("User").Find(&bookings).Error
+
+	if err != nil {
+		return nil, err
+	}
+
+	return bookings, err
+}
+
+func GetBookingByID(id uint)(Booking, error){
+	var booking Booking
+
+	err := database.DB.Preload("Schedule.Vehicle").Preload("User").First(&booking, id).Error
+
+	if err != nil {
+		return Booking{}, err
+	}
+
+	return booking, nil
+}
