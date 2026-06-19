@@ -48,9 +48,10 @@ func GetScheduleHandler(c *gin.Context) {
         })
         return
     }
+	seats, _ := GetAvailableSeats(dataSchedule.ID)
 
 	responses := ToScheduleResponses(
-		schedules,
+		schedules, seats,
 	)
 
 	c.JSON(http.StatusOK, gin.H{

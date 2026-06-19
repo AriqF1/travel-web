@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/AriqF1/travel-web/internal/vehicle"
+
 	"github.com/AriqF1/travel-web/pkg/database"
 )
 
@@ -92,4 +93,35 @@ func DeleteSchedule(id uint) error {
 	}
 	
 	return database.DB.Delete(&schedule).Error
+}
+
+func GetAvailableSeats(
+	scheduleID uint,
+) (int, error) {
+
+	var schedule Schedule
+
+	err := database.DB.
+		Preload("Vehicle").
+		First(&schedule, scheduleID).
+		Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	var totalBookings int64
+
+	err = database.DB.
+		Table("bookings").
+		Where("schedule_id = ? AND deleted_at IS NULL", scheduleID).
+		Count(&totalBookings).
+		Error
+
+	if err != nil {
+		return 0, err
+	}
+
+	return schedule.Vehicle.SeatCount -
+		int(totalBookings), nil
 }
