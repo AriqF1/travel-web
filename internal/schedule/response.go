@@ -28,27 +28,24 @@ func ToScheduleResponse(
 		Destination		: s.Destination,
 		DepartureTime	: s.DepartureTime.Format(time.RFC3339),
 		Price			: s.Price,
+
 		AvailableSeats 	: availableSeats,
 
 		Vehicle: vehicle.ToVehicleResponse(s.Vehicle),
 	}
 }
 
-func ToScheduleResponses(
-	schedules []Schedule,
-) []ScheduleResponse {
+func ToScheduleResponses(schedules []Schedule) []ScheduleResponse {
 
-	var responses []ScheduleResponse
+    responses := make([]ScheduleResponse, 0, len(schedules))
 
-	for _, schedule := range schedules {
-		
-		availableSeats, _ := GetAvailableSeats(schedule.ID)
+    for _, schedule := range schedules {
+        availableSeats, err := GetAvailableSeats(schedule.ID)
+        if err != nil {
+            availableSeats = 0 
+        }
 
-		responses = append(
-			responses,
-			ToScheduleResponse(schedule, availableSeats),
-		)		
-	}
-
-	return responses
+        responses = append(responses, ToScheduleResponse(schedule, availableSeats))       
+    }
+    return responses
 }
