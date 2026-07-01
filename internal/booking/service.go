@@ -11,43 +11,65 @@ import (
 )
 
 func CreateBooking(userID uint, req BookingRequest) error {
-	_, err := schedule.GetScheduleByID(req.ScheduleID)
+	return database.DB.Transaction(func(tx *gorm.DB) error {
 
-	if err != nil {
-		return errors.New("schedule not found")
-	}
+		// Mengambil schedule beserta vehicle
+		var sch schedule.Schedule
 
-	_, err = user.GetUserByID(userID)
+		err := tx.
+			Preload("Vehicle").
+			First(&sch, req.ScheduleID).
+			Error
 
-	if err != nil {
-		return errors.New("user not found")
-	}
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				return errors.New("schedule not found")
+			}
 
-	err = database.DB.
-	Where(
-		"schedule_id = ? AND seat_number = ?",
-		req.ScheduleID,
-		req.SeatNumber,
-	).
-	First(&Booking{}).
-	Error
+			return err
+		}
 
-	if err == nil {
-		return errors.New("seat already booked")
-	}
+		// Validasi nomor kursi
+		if err := ValidateSeatNumber(
+			req.SeatNumber,
+			sch.Vehicle.SeatCount,
+		); err != nil {
+			return err
+		}
 
-	if err != gorm.ErrRecordNotFound {
-		return err
-	}
+		// Mengecek apakah kursi sudah dibooking
+		var existingBooking Booking
 
-	newBooking := Booking{
-		UserID: userID,
-		ScheduleID: req.ScheduleID,
-		PassengerName: req.PassengerName,
-		SeatNumber: req.SeatNumber,
-	}
+		err = tx.
+			Where(
+				"schedule_id = ? AND seat_number = ?",
+				req.ScheduleID,
+				req.SeatNumber,
+			).
+			First(&existingBooking).
+			Error
 
-	return database.DB.Create(&newBooking).Error
+		if err == nil {
+			return errors.New("seat already booked")
+		}
+
+		if !errors.Is(err, gorm.ErrRecordNotFound) {
+			return err
+		}
+
+		newBooking := Booking{
+			UserID:        userID,
+			ScheduleID:    req.ScheduleID,
+			PassengerName: req.PassengerName,
+			SeatNumber:    req.SeatNumber,
+		}
+
+		if err := tx.Create(&newBooking).Error; err != nil {
+			return err
+		}
+
+		return nil
+	})
 }
 
 func GetBookings()([]Booking, error) {
