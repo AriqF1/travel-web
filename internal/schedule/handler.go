@@ -48,10 +48,9 @@ func GetScheduleHandler(c *gin.Context) {
         })
         return
     }
-	seats, _ := GetAvailableSeats(dataSchedule.ID)
 
 	responses := ToScheduleResponses(
-		schedules, seats,
+		schedules,
 	)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -71,7 +70,6 @@ func GetScheduleByIDHandler(c *gin.Context) {
     }
 
     schedule, err := GetScheduleByID(uint(id))
-
     if err != nil {
         if errors.Is(err, gorm.ErrRecordNotFound) {
             c.JSON(http.StatusNotFound, gin.H{
@@ -79,14 +77,21 @@ func GetScheduleByIDHandler(c *gin.Context) {
             })
             return
         }
-
         c.JSON(http.StatusInternalServerError, gin.H{
             "error": err.Error(),
         })
         return
     }
 
-    response := ToScheduleResponse(schedule)
+    availableSeats, err := GetAvailableSeats(schedule.ID)
+    if err != nil {
+        c.JSON(http.StatusInternalServerError, gin.H{
+            "error": err.Error(),
+        })
+        return
+    }
+
+    response := ToScheduleResponse(schedule, availableSeats)
     c.JSON(http.StatusOK, gin.H{
         "schedule": response,
     })
